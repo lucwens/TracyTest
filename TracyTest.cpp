@@ -8,9 +8,20 @@
 #include <chrono>
 #include <atomic>
 
+void WorkerFunction(void)
+{
+    ZoneScoped;
+    for (int i = 0; i < 100; i++)
+    {
+        ZoneScoped;
+        std::cout << i << std::endl;
+    }
+}
+
 // Thread function that prints message and sleeps
 void threadFunction(std::atomic<bool> &stopFlag)
 {
+    tracy::SetThreadName("thread");
     while (!stopFlag)
     {
         {
@@ -18,6 +29,7 @@ void threadFunction(std::atomic<bool> &stopFlag)
             std::cout << "Hello from thread\n";
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
             FrameMark;
+            WorkerFunction();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
@@ -25,6 +37,8 @@ void threadFunction(std::atomic<bool> &stopFlag)
 
 int main()
 {
+    TRACY_CALLSTACK(5);
+    tracy::SetThreadName("main");
     // Atomic flag to stop the thread
     std::atomic<bool> stopThread(false);
 
