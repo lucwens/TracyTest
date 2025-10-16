@@ -8,7 +8,7 @@
 #include <chrono>
 #include <atomic>
 
-std::mutex mutex;
+TracyLockable(std ::mutex, mutex);
 
 void WorkerFunction(void)
 {
@@ -26,7 +26,7 @@ void threadFunction(std::atomic<bool> &stopFlag)
     {
         ZoneScopedNC("THREAD", tracy::Color::PeachPuff);
         {
-            std::lock_guard<std::mutex> LockGuard(mutex);
+            std ::lock_guard<LockableBase(std ::mutex)> lock(mutex);
             ZoneScopedNC("thread",tracy::Color::Red);
             std::this_thread::sleep_for(std::chrono::milliseconds(80));
             WorkerFunction();
@@ -48,7 +48,7 @@ int main()
     while (!_kbhit())
     {
         {
-            std::lock_guard<std::mutex> LockGuard(mutex);
+            std ::lock_guard<LockableBase(std ::mutex)> lock(mutex);
             ZoneScopedN("Main");
             std::cout << "Hello World!\n";
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
