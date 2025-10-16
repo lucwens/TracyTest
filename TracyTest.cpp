@@ -18,6 +18,7 @@ void WorkerFunction(void)
 {
     for (int i = 0; i < 100; i++)
     {
+        ZoneScopedS(5);
         t += timestep;
         s = sin(t);
         TracyPlot("sin", s);
