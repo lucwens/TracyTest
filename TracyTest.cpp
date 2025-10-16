@@ -10,10 +10,17 @@
 
 TracyLockable(std ::mutex, mutex);
 
+double t = 0.0;
+double timestep = 0.01;
+double s        = 0.0;
+
 void WorkerFunction(void)
 {
     for (int i = 0; i < 100; i++)
     {
+        t += timestep;
+        s = sin(t);
+        TracyPlot("sin", s);
         std::cout << i << std::endl;
     }
 }
