@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Doc">
+      <UniqueIdentifier>{72d32f20-e8c0-4e94-9f20-bab4ef875196}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TracyTest.cpp">
@@ -21,5 +24,16 @@
     <ClCompile Include="tracy\public\TracyClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Doc\tracy.pdf">
+      <Filter>Doc</Filter>
+    </None>
+    <None Include="Doc\Tracy_Macro_CheatSheet.pdf">
+      <Filter>Doc</Filter>
+    </None>
+    <None Include="Doc\Tracy_Profiler_2024.pdf">
+      <Filter>Doc</Filter>
+    </None>
   </ItemGroup>
 </Project>

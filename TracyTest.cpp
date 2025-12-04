@@ -2,27 +2,30 @@
 //
 
 #include <iostream>
-#include <Tracy.hpp>
 #include <conio.h>
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <Tracy.hpp>
+
 
 TracyLockable(std ::mutex, mutex);
 
-double t = 0.0;
+double t        = 0.0;
 double timestep = 0.01;
 double s        = 0.0;
 
 void WorkerFunction(void)
 {
+    ZoneScopedS(30);
     for (int i = 0; i < 100; i++)
     {
-        ZoneScopedS(5);
+        char Message[201];
         t += timestep;
         s = sin(t);
         TracyPlot("sin", s);
-        std::cout << i << std::endl;
+        sprintf_s(Message, 200, "Sinus value is %0.3f", s);
+        TracyMessage(Message,strlen(Message));
     }
 }
 
@@ -35,7 +38,7 @@ void threadFunction(std::atomic<bool> &stopFlag)
         ZoneScopedNC("THREAD", tracy::Color::PeachPuff);
         {
             std ::lock_guard<LockableBase(std ::mutex)> lock(mutex);
-            ZoneScopedNC("thread",tracy::Color::Red);
+            ZoneScopedNC("thread", tracy::Color::Red);
             std::this_thread::sleep_for(std::chrono::milliseconds(80));
             WorkerFunction();
         }
@@ -45,7 +48,6 @@ void threadFunction(std::atomic<bool> &stopFlag)
 
 int main()
 {
-    TRACY_CALLSTACK(5);
     tracy::SetThreadName("main");
     // Atomic flag to stop the thread
     std::atomic<bool> stopThread(false);

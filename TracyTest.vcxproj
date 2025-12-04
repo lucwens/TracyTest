@@ -106,7 +106,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);TRACY_ENABLE </PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);TRACY_ENABLE;TRACY_ENABLE_SAMPLING;TRACY_ON_DEMAND</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -120,7 +120,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);TRACY_ENABLE </PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);TRACY_ENABLE ;TRACY_ON_DEMAND</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
@@ -131,6 +131,11 @@
   <ItemGroup>
     <ClCompile Include="TracyTest.cpp" />
     <ClCompile Include="tracy\public\TracyClient.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Doc\tracy.pdf" />
+    <None Include="Doc\Tracy_Macro_CheatSheet.pdf" />
+    <None Include="Doc\Tracy_Profiler_2024.pdf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
