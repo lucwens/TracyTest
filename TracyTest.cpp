@@ -1,12 +1,53 @@
 // TracyTest.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#define TRACY_MANUAL_LIFETIME
+#define TRACY_DELAYED_INIT
+#define TRACY_CALLSTACK 5
+
 #include <iostream>
 #include <Tracy.hpp>
-#include <conio.h>
+#ifdef _WIN32
+#  include <conio.h>
+#else
+#  include <unistd.h>
+#  include <termios.h>
+#  include <sys/ioctl.h>
+#  include <stdio.h>
+
+struct TerminalState {
+    struct termios original;
+    bool initialized = false;
+
+    TerminalState() {
+        if (tcgetattr(STDIN_FILENO, &original) == 0) {
+            initialized = true;
+            struct termios term = original;
+            term.c_lflag &= ~ICANON;
+            tcsetattr(STDIN_FILENO, TCSANOW, &term);
+            setbuf(stdin, NULL);
+        }
+    }
+
+    ~TerminalState() {
+        if (initialized) {
+            tcsetattr(STDIN_FILENO, TCSANOW, &original);
+        }
+    }
+};
+
+int _kbhit() {
+    static TerminalState state;
+    int bytesWaiting;
+    ioctl(STDIN_FILENO, FIONREAD, &bytesWaiting);
+    return bytesWaiting;
+}
+#endif
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <cmath>
+#include <mutex>
 
 TracyLockable(std ::mutex, mutex);
 
@@ -45,7 +86,9 @@ void threadFunction(std::atomic<bool> &stopFlag)
 
 int main()
 {
-    TRACY_CALLSTACK(5);
+    // Explicitly start the profiler
+    tracy::StartupProfiler();
+
     tracy::SetThreadName("main");
     // Atomic flag to stop the thread
     std::atomic<bool> stopThread(false);
@@ -72,4 +115,9 @@ int main()
     // Stop the thread and wait for it to finish
     stopThread = true;
     workerThread.join();
+
+    // Explicitly stop the profiler.
+    // This will flush data and disconnect from the server (tracy-capture),
+    // which causes the capture tool to save and exit.
+    tracy::ShutdownProfiler();
 }
