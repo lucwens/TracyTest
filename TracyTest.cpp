@@ -93,8 +93,13 @@ void threadFunction(std::atomic<bool> &stopFlag)
     }
 }
 
+constexpr bool hideConsole = true;
+
 int main()
 {
+    if (hideConsole)
+        ShowWindow(GetConsoleWindow(), SW_HIDE);
+
     tracy::StartupProfiler();
 
     // Launch tracy-capture as a child process to record profiling data
@@ -124,36 +129,54 @@ int main()
     std::cout << "Press 's' to stop profiling and save, 'q' to quit.\n";
     bool profiling = true;
     bool running   = true;
+    auto startTime = std::chrono::steady_clock::now();
+
+    // Helper lambda to stop profiling and save
+    auto stopProfiling = [&]()
+    {
+        // Stop the worker thread first so no Tracy macros are in flight
+        stopThread = true;
+        workerThread.join();
+
+        profiling = false;
+        std::cout << "Stopping Tracy profiler...\n";
+        tracy::ShutdownProfiler();
+
+        if (captureStarted)
+        {
+            std::cout << "Waiting for tracy-capture to save test.tracy...\n";
+            WaitForSingleObject(pi.hProcess, 10000);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+            captureStarted = FALSE;
+            std::cout << "Profile saved to test.tracy\n";
+        }
+    };
 
     while (running)
     {
-        if (_kbhit())
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                            std::chrono::steady_clock::now() - startTime)
+                            .count();
+
+        if (hideConsole)
+        {
+            // Auto-stop profiling at 3 seconds, auto-quit at 5 seconds
+            if (profiling && elapsed >= 3)
+                stopProfiling();
+            if (elapsed >= 5)
+            {
+                running = false;
+                continue;
+            }
+        }
+        else if (_kbhit())
         {
             int key = _getch();
             if ((key == 's' || key == 'S') && profiling)
-            {
-                // Stop the worker thread first so no Tracy macros are in flight
-                stopThread = true;
-                workerThread.join();
-
-                profiling = false;
-                std::cout << "Stopping Tracy profiler...\n";
-                tracy::ShutdownProfiler();
-
-                if (captureStarted)
-                {
-                    std::cout << "Waiting for tracy-capture to save test.tracy...\n";
-                    WaitForSingleObject(pi.hProcess, 10000);
-                    CloseHandle(pi.hProcess);
-                    CloseHandle(pi.hThread);
-                    captureStarted = FALSE;
-                    std::cout << "Profile saved to test.tracy\n";
-                }
-            }
+                stopProfiling();
             else if (key == 'q' || key == 'Q')
-            {
                 running = false;
-            }
         }
 
         if (profiling)
