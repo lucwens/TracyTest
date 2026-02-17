@@ -95,7 +95,7 @@ void threadFunction(std::atomic<bool> &stopFlag)
 
 int main()
 {
-    tra
+    tracy::StartupProfiler();
 
     // Launch tracy-capture as a child process to record profiling data
     PROCESS_INFORMATION pi = {};
@@ -121,37 +121,82 @@ int main()
     // Start the thread
     std::thread workerThread(threadFunction, std::ref(stopThread));
 
-    while (!_kbhit())
+    std::cout << "Press 's' to stop profiling and save, 'q' to quit.\n";
+    bool profiling = true;
+    bool running   = true;
+
+    while (running)
     {
+        if (_kbhit())
         {
-            std::lock_guard<std::mutex> lock(mutex);
-            ZoneScopedN("Main");
-            std::cout << "Hello World!\n";
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            int key = _getch();
+            if ((key == 's' || key == 'S') && profiling)
+            {
+                // Stop the worker thread first so no Tracy macros are in flight
+                stopThread = true;
+                workerThread.join();
+
+                profiling = false;
+                std::cout << "Stopping Tracy profiler...\n";
+                tracy::ShutdownProfiler();
+
+                if (captureStarted)
+                {
+                    std::cout << "Waiting for tracy-capture to save test.tracy...\n";
+                    WaitForSingleObject(pi.hProcess, 10000);
+                    CloseHandle(pi.hProcess);
+                    CloseHandle(pi.hThread);
+                    captureStarted = FALSE;
+                    std::cout << "Profile saved to test.tracy\n";
+                }
+            }
+            else if (key == 'q' || key == 'Q')
+            {
+                running = false;
+            }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+        if (profiling)
         {
-            FrameMarkStart("frame");
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            FrameMarkEnd("frame");
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                ZoneScopedN("Main");
+                std::cout << "Hello World!\n";
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            {
+                FrameMarkStart("frame");
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                FrameMarkEnd("frame");
+            }
+        }
+        else
+        {
+            std::cout << "Running (profiling stopped)...\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
-    // Stop the thread and wait for it to finish
-    stopThread = true;
-    workerThread.join();
-
-    // Explicitly stop the profiler.
-    // This disconnects tracy-capture, which triggers it to save the .tracy file.
-    tracy::ShutdownProfiler();
-
-    // Wait for tracy-capture to finish writing the file
-    if (captureStarted)
+    // Stop the thread and wait for it to finish (if not already joined)
+    if (workerThread.joinable())
     {
-        std::cout << "Waiting for tracy-capture to save test.tracy...\n";
-        WaitForSingleObject(pi.hProcess, 10000);
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-        std::cout << "Profile saved to test.tracy\n";
+        stopThread = true;
+        workerThread.join();
+    }
+
+    // If profiling is still active (quit without saving), shut it down now
+    if (profiling)
+    {
+        tracy::ShutdownProfiler();
+
+        if (captureStarted)
+        {
+            std::cout << "Waiting for tracy-capture to save test.tracy...\n";
+            WaitForSingleObject(pi.hProcess, 10000);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+            std::cout << "Profile saved to test.tracy\n";
+        }
     }
 }
