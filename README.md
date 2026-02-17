@@ -2,9 +2,9 @@
 
 This project demonstrates how to programmatically control the start and stop of [Tracy Profiler](https://github.com/wolfpld/tracy) data capture, independent of any console window or user interaction.
 
-## How It Works
+## 1. How It Works
 
-### Key Preprocessor Defines
+### 1.1 Key Preprocessor Defines
 
 Tracy must be configured for manual lifetime control:
 
@@ -16,7 +16,7 @@ Tracy must be configured for manual lifetime control:
 
 These defines **must appear before** `#include <Tracy.hpp>`.
 
-### Profiler Lifecycle
+### 1.2 Profiler Lifecycle
 
 The profiler lifecycle is fully controlled in code:
 
@@ -25,7 +25,7 @@ The profiler lifecycle is fully controlled in code:
 3. **Stop** - All threads using Tracy macros must be stopped first. Then `tracy::ShutdownProfiler()` disconnects the capture tool, which triggers it to flush and save the file.
 4. **Wait** - `WaitForSingleObject` on the capture process handle ensures the `.tracy` file is fully written before the program exits.
 
-### Two Operating Modes
+### 1.3 Two Operating Modes
 
 A compile-time flag controls the behavior:
 
@@ -40,7 +40,7 @@ constexpr bool hideConsole = true;
 
 When the console is hidden, the program runs silently and uses elapsed time to trigger the stop and quit actions. This makes it suitable for automated test runs, CI pipelines, or embedding into other applications.
 
-### Critical Shutdown Order
+### 1.4 Critical Shutdown Order
 
 The shutdown sequence **must** follow this exact order to avoid assertion failures:
 
@@ -51,9 +51,9 @@ The shutdown sequence **must** follow this exact order to avoid assertion failur
 
 Calling `tracy::ShutdownProfiler()` while any thread is still inside a `ZoneScoped` block will trigger an assertion failure in `tracy::GetProfilerData`.
 
-## Applying This Technique to Other Programs
+## 2. Applying This Technique to Other Programs
 
-### Console Applications
+### 2.1 Console Applications
 
 **Step 1: Add Tracy to your project**
 
@@ -140,7 +140,7 @@ Depending on your use case, trigger the shutdown with:
 - **External signal** - a named event, file, or pipe for cross-process control
 - **Application event** - after a specific operation completes (e.g., file processed, test finished)
 
-### MFC Applications
+### 2.2 MFC Applications
 
 MFC apps have no console by default, making timer-based or event-based control the natural fit.
 
@@ -252,13 +252,13 @@ int CMyApp::ExitInstance()
 }
 ```
 
-## Requirements
+## 3. Requirements
 
 - [Tracy Profiler](https://github.com/wolfpld/tracy) client library (included as submodule in `tracy/`)
 - `tracy-capture.exe` on PATH or in the working directory
 - Windows (for `CreateProcessA` / `WaitForSingleObject`; Linux alternatives exist using `fork`/`waitpid`)
 
-## Viewing the Profile
+## 4. Viewing the Profile
 
 Open the saved `.tracy` file with the Tracy Profiler GUI:
 
