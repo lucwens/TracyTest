@@ -35,5 +35,8 @@
     <None Include="Doc\Tracy_Profiler_2024.pdf">
       <Filter>Doc</Filter>
     </None>
+    <None Include="README.md">
+      <Filter>Doc</Filter>
+    </None>
   </ItemGroup>
 </Project>

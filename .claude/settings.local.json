@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(cmake --build:*)",
-      "Bash(cmake:*)"
+      "Bash(cmake:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

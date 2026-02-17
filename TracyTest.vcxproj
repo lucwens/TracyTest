@@ -136,6 +136,7 @@
     <None Include="Doc\tracy.pdf" />
     <None Include="Doc\Tracy_Macro_CheatSheet.pdf" />
     <None Include="Doc\Tracy_Profiler_2024.pdf" />
+    <None Include="README.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
